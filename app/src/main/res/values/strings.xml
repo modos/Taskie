@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Task Manager</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="email">Email</string>
+    <string name="gold">Gold</string>
+    <string name="silver">Silver</string>
+    <string name="bronze">Bronze</string>
+    <string name="submit">Submit</string>
+    <string name="username_or_email">Username or email</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="title_taks">Title of Task</string>
+    <string name="description_task">Description</string>
+</resources>
