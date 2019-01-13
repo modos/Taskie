@@ -31,13 +31,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     Button buttonLogin, buttonRegister;
     Snackbar snackbar;
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        inputUsernameOrEmail.setText("");
+        inputPassword.setText("");
+    }
+
     private static final String KEY_USERNAME_OR_EMAIL = "usernameOrEmail";
     private static final String KEY_PASSWORD = "password";
     private static final String KEY_MESSAGE = "message";
     private static final String KEY_STATUS = "status";
-    private static final String LOGIN_URL = "http://172.20.174.99/TaskManager/login.php";
-    private static boolean loggedIn = false;
-    public static String username;
+    private static final String LOGIN_URL = "http://172.20.175.211/TaskManager/login.php";
+    public static String usernameOrEmail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,12 +71,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.mainButtonLogin:
                 login();
-
-                if (loggedIn){
-                    startActivity(new Intent(MainActivity.this, UserConsole.class));
-                    overridePendingTransition(R.anim.fadein, R.anim.fadeout);
-                }
-
                 break;
             default:
                 break;
@@ -78,7 +78,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void login(){
-        JSONObject request = new JSONObject();
+        final JSONObject request = new JSONObject();
 
         try {
             request.put(KEY_USERNAME_OR_EMAIL , inputUsernameOrEmail.getText().toString().trim());
@@ -92,17 +92,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onResponse(JSONObject response) {
                 Log.d("developer", response.toString());
-                username = inputUsernameOrEmail.getText().toString().trim();
-                try {
-                    if (response.getInt(KEY_STATUS) == 0){
-                        loggedIn = true;
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                usernameOrEmail = inputUsernameOrEmail.getText().toString().trim();
 
                 try {
-                    showSnackbar(response.getString(KEY_MESSAGE));
+                    if (response.getInt(KEY_STATUS) ==  0){
+                        startActivity(new Intent(MainActivity.this, UserConsole.class));
+                        overridePendingTransition(R.anim.fadein, R.anim.fadeout);
+                    }else{
+                        showSnackbar(response.getString(KEY_MESSAGE));
+                    }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -112,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onErrorResponse(VolleyError error) {
                 error.printStackTrace();
-
+                    showSnackbar("some error happened");
             }
         });
 
