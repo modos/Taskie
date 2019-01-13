@@ -37,6 +37,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String KEY_STATUS = "status";
     private static final String LOGIN_URL = "http://172.20.174.99/TaskManager/login.php";
     private static boolean loggedIn = false;
+    public static String username;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onResponse(JSONObject response) {
                 Log.d("developer", response.toString());
-
+                username = inputUsernameOrEmail.getText().toString().trim();
                 try {
                     if (response.getInt(KEY_STATUS) == 0){
                         loggedIn = true;

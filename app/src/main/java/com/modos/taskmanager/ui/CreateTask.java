@@ -2,8 +2,10 @@ package com.modos.taskmanager.ui;
 
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
@@ -11,7 +13,16 @@ import android.widget.EditText;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.modos.taskmanager.R;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.Calendar;
 
@@ -19,8 +30,21 @@ public class CreateTask extends AppCompatActivity implements View.OnClickListene
 
     EditText title, description;
     Button setDateButton, setTimeButton, submit;
+    Snackbar snackbar;
 
     private int mYear, mMonth, mDay, mHour, mMinute;
+
+    private static final String KEY_USERNAME = "username";
+    private static final String KEY_TITLE = "title";
+    private static final String KEY_DESCRIPTION = "description";
+    private static final String KEY_YEAR = "year";
+    private static final String KEY_MONTH = "month";
+    private static final String KEY_DAY = "day";
+    private static final String KEY_HOUR = "hour";
+    private static final String KEY_MINUTE = "minute";
+    private static final String KEY_CREATE_TASK_URL = "http://172.20.174.99/TaskManager/createTask.php";
+    private static final String KEY_STATUS = "status";
+    private static final String KEY_MESSAGE = "message";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,8 +59,15 @@ public class CreateTask extends AppCompatActivity implements View.OnClickListene
 
         setDateButton.setOnClickListener(this);
         setTimeButton.setOnClickListener(this);
+        submit.setOnClickListener(this);
 
 
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        overridePendingTransition(R.anim.fadein, R.anim.fadeout);
     }
 
     @Override
@@ -47,6 +78,9 @@ public class CreateTask extends AppCompatActivity implements View.OnClickListene
                 break;
             case R.id.btnTimePicker:
                 setTimeButtonListener();
+                break;
+            case R.id.buttonSubmitTask:
+                submit();
                 break;
         }
     }
@@ -88,5 +122,55 @@ public class CreateTask extends AppCompatActivity implements View.OnClickListene
                     }
                 }, mHour, mMinute, false);
         timePickerDialog.show();
+    }
+
+    private void submit(){
+        if (title.getText().toString().trim().isEmpty()){
+            title.setError("set a title ");
+        }else{
+            JSONObject request = new JSONObject();
+
+            try {
+                request.put(KEY_USERNAME , "modos");
+                request.put(KEY_TITLE , title.getText().toString().trim());
+                request.put(KEY_DESCRIPTION , description.getText().toString().trim());
+                request.put(KEY_YEAR , mYear);
+                request.put(KEY_MONTH , mMonth);
+                request.put(KEY_DAY , mDay);
+                request.put(KEY_HOUR , mHour);
+                request.put(KEY_MINUTE , mMinute);
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, KEY_CREATE_TASK_URL, request, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    Log.d("developer", response.toString());
+
+                    try {
+                        showSnackbar(response.getString(KEY_MESSAGE));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    error.printStackTrace();
+
+                }
+            });
+
+            RequestQueue requestQueue =  Volley.newRequestQueue(this);
+            requestQueue.add(jsonObjectRequest);
+        }
+    }
+
+    private void showSnackbar(String string){
+        snackbar.make(findViewById(android.R.id.content), string.toString(), Snackbar.LENGTH_SHORT)
+                .setActionTextColor(getResources().getColor(R.color.colorPrimary)).show();
     }
 }
