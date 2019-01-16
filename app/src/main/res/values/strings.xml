@@ -16,4 +16,5 @@
     <string name="log_out">Log out</string>
     <string name="delete_account">Delete account</string>
     <string name="change_password">Change password</string>
+    <string name="new_password">New password:</string>
 </resources>
