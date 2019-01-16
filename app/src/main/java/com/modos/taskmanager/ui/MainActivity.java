@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final String KEY_PASSWORD = "password";
     private static final String KEY_MESSAGE = "message";
     private static final String KEY_STATUS = "status";
-    private static final String LOGIN_URL = "http://172.20.175.211/TaskManager/login.php";
+    private static final String LOGIN_URL = "http://172.20.174.224/TaskManager/login.php";
     public static String usernameOrEmail;
 
     @Override

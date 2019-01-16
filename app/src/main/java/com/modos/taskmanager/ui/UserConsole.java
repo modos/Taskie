@@ -1,11 +1,8 @@
 package com.modos.taskmanager.ui;
 
+import android.app.Dialog;
 import android.content.Intent;
-import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.NavigationView;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,7 +10,8 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
+import android.widget.Button;
+import android.widget.TextView;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -31,7 +29,9 @@ public class UserConsole extends AppCompatActivity {
     private FloatingActionButton floatingActionButton;
 
     private static final String KEY_USERNAME_OR_EMAIL = "usernameOrEmail";
-    private static final String DELETE_ACCOUNT_URL = "http://172.20.175.211/TaskManager/deleteUser.php";
+    private static final String KEY_NEW_PASSWORD = "newPassword";
+    private static final String DELETE_ACCOUNT_URL = "http://172.20.174.224/TaskManager/deleteUser.php";
+    private static final String CHANGE_PASSWORD_URL = "http://172.20.174.224/TaskManager/changePassword.php";
     private static final String KEY_STATUS = "status";
 
     private void logout(){
@@ -88,6 +88,8 @@ public class UserConsole extends AppCompatActivity {
             case R.id.delete_item:
                 deleteAccount();
                 break;
+            case R.id.change_password:
+                changePassword();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -120,5 +122,60 @@ public class UserConsole extends AppCompatActivity {
     protected void onPause() {
         super.onPause();
         overridePendingTransition(R.anim.fadein, R.anim.fadeout);
+    }
+
+
+    private void changePassword(){
+        final Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.change_password_layout);
+        dialog.setTitle("Change Password");
+
+        final TextView inputNewPassword = dialog.findViewById(R.id.input_new_password);
+
+        Button submit = dialog.findViewById(R.id.submit_new_password);
+
+        submit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                final JSONObject request = new JSONObject();
+
+                try {
+                    request.put(KEY_USERNAME_OR_EMAIL , MainActivity.usernameOrEmail);
+                    request.put(KEY_NEW_PASSWORD , inputNewPassword.getText().toString().trim());
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, CHANGE_PASSWORD_URL, request, new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        Log.d("developer", response.toString());
+
+                        try {
+                            if (response.getInt(KEY_STATUS) ==  0){
+                                startActivity(new Intent(UserConsole.this, MainActivity.class));
+                                overridePendingTransition(R.anim.fadein, R.anim.fadeout);
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        error.printStackTrace();
+                    }
+                });
+
+                RequestQueue requestQueue =  Volley.newRequestQueue(UserConsole.this);
+                requestQueue.add(jsonObjectRequest);
+
+            }
+        });
+
+        dialog.show();
     }
 }

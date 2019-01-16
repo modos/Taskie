@@ -42,7 +42,7 @@ public class CreateTask extends AppCompatActivity implements View.OnClickListene
     private static final String KEY_DAY = "day";
     private static final String KEY_HOUR = "hour";
     private static final String KEY_MINUTE = "minute";
-    private static final String KEY_CREATE_TASK_URL = "http://172.20.174.99/TaskManager/createTask.php";
+    private static final String KEY_CREATE_TASK_URL = "http://172.20.174.224/TaskManager/createTask.php";
     private static final String KEY_STATUS = "status";
     private static final String KEY_MESSAGE = "message";
 
