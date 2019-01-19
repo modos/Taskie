@@ -48,7 +48,7 @@ public class Register extends AppCompatActivity{
     private static final String KEY_STATUS = "status";
     private static final String KEY_MESSAGE = "message";
 
-    private static final String REGISTER_URL = "http://172.20.175.143/TaskManager/register.php";
+    private static final String REGISTER_URL = "http://172.20.179.65/TaskManager/register.php";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

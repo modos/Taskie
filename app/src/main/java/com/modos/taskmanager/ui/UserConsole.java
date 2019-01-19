@@ -1,10 +1,16 @@
 package com.modos.taskmanager.ui;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -12,27 +18,55 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.modos.taskmanager.R;
+import com.modos.taskmanager.controller.SwipeToDelete;
+import com.modos.taskmanager.controller.TaskListAdapter;
+import com.modos.taskmanager.model.Task;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class UserConsole extends AppCompatActivity {
 
     private FloatingActionButton floatingActionButton;
 
+    private static RecyclerView recyclerView;
+
+    static Context c;
+
+    static TextView empty;
+
+    @Override
+    public Context getApplicationContext() {
+       return c =  super.getApplicationContext();
+    }
+
+    public static List<Task> taskList;
+    public static TaskListAdapter adapter;
+
     private static final String KEY_USERNAME_OR_EMAIL = "usernameOrEmail";
     private static final String KEY_NEW_PASSWORD = "newPassword";
-    private static final String DELETE_ACCOUNT_URL = "http://172.20.174.224/TaskManager/deleteUser.php";
-    private static final String CHANGE_PASSWORD_URL = "http://172.20.174.224/TaskManager/changePassword.php";
+    private static final String KEY_TITLE = "title";
+    private static final String DELETE_ACCOUNT_URL = "http://172.20.179.65/TaskManager/deleteUser.php";
+    private static final String CHANGE_PASSWORD_URL = "http://172.20.179.65/TaskManager/changePassword.php";
+    private static final String TASKS_URL = "http://172.20.179.65/TaskManager/showTasks.php";
+    private static final String DELETE_TASK_URL = "http://172.20.179.65/TaskManager/deleteTaskFromList.php";
     private static final String KEY_STATUS = "status";
+    private static final String KEY_MESSAGE= "message";
 
     private void logout(){
         finish();
@@ -102,10 +136,32 @@ public class UserConsole extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        taskList.clear();
+        showTasks();
+
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_console);
 
+        recyclerView = findViewById(R.id.list);
+        recyclerView.setHasFixedSize(true);
+        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
+        recyclerView.setLayoutManager(mLayoutManager);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.addItemDecoration(new DividerItemDecoration(this, LinearLayoutManager.VERTICAL));
+
+        ItemTouchHelper itemTouchHelper = new
+                ItemTouchHelper(new SwipeToDelete(adapter));
+        itemTouchHelper.attachToRecyclerView(recyclerView);
+
+        taskList = new ArrayList<>();
+
+        empty = findViewById(R.id.empty);
 
         floatingActionButton = findViewById(R.id.floating_action_button);
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
@@ -123,8 +179,6 @@ public class UserConsole extends AppCompatActivity {
         super.onPause();
         overridePendingTransition(R.anim.fadein, R.anim.fadeout);
     }
-
-
     private void changePassword(){
         final Dialog dialog = new Dialog(this);
         dialog.setContentView(R.layout.change_password_layout);
@@ -178,4 +232,98 @@ public class UserConsole extends AppCompatActivity {
 
         dialog.show();
     }
+
+    private void showTasks(){
+
+        StringRequest stringrequest = new StringRequest(Request.Method.POST, TASKS_URL,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        try {
+                            JSONArray jarray = new JSONArray(response);
+                            for (int i = 0; i < jarray.length(); i++) {
+                                JSONObject taskObject = jarray.getJSONObject(i);
+
+                                if (taskObject.getString("username").equals(MainActivity.usernameOrEmail)
+                                        || taskObject.getString("email").equals(MainActivity.usernameOrEmail)){
+                                    Task task = new Task(taskObject.getString("title"), taskObject.getString("description"),
+                                                 taskObject.getInt("year"), taskObject.getInt("month"), taskObject.getInt("day"),
+                                            taskObject.getInt("hour"), taskObject.getInt("minute"));
+
+                                    taskList.add(task);
+                                }
+
+                            }
+                            adapter = new TaskListAdapter(taskList);
+                            adapter.notifyDataSetChanged();
+
+                            recyclerView.setAdapter(adapter);
+
+                            if (taskList.isEmpty()){
+                                recyclerView.setVisibility(View.GONE);
+                                empty.setVisibility(View.VISIBLE);
+                            }else{
+                                recyclerView.setVisibility(View.VISIBLE);
+                                empty.setVisibility(View.GONE);
+                            }
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Toast.makeText(getApplicationContext(), error.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+        RequestQueue requestQueue = Volley.newRequestQueue(this);
+
+        requestQueue.add(stringrequest);
+    }
+
+    public static void deleteItem(int position) {
+        String title = taskList.get(position).getTitle();
+
+        UserConsole.taskList.remove(position);
+
+        UserConsole.adapter.notifyDataSetChanged();
+
+        final JSONObject request = new JSONObject();
+
+        try {
+            request.put(KEY_USERNAME_OR_EMAIL, MainActivity.usernameOrEmail);
+            request.put(KEY_TITLE, title);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest(Request.Method.POST, DELETE_TASK_URL, request, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.e("developer", error.getMessage());
+            }
+        });
+
+        RequestQueue requestQueue =  Volley.newRequestQueue(c);
+        requestQueue.add(jsonObjectRequest);
+
+        if (taskList.isEmpty()){
+            recyclerView.setVisibility(View.GONE);
+            empty.setVisibility(View.VISIBLE);
+        }else{
+            recyclerView.setVisibility(View.VISIBLE);
+            empty.setVisibility(View.GONE);
+        }
+
+
+    }
+
 }
+

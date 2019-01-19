@@ -17,4 +17,10 @@
     <string name="delete_account">Delete account</string>
     <string name="change_password">Change password</string>
     <string name="new_password">New password:</string>
+    <string name="title">Title</string>
+    <string name="year">Year</string>
+    <string name="month">Month</string>
+    <string name="hour">Hour</string>
+    <string name="day">Day</string>
+    <string name="no_task">no task</string>
 </resources>

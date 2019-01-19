@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Adapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -20,6 +21,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.modos.taskmanager.R;
+import com.modos.taskmanager.controller.TaskListAdapter;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,7 +36,7 @@ public class CreateTask extends AppCompatActivity implements View.OnClickListene
 
     private int mYear, mMonth, mDay, mHour, mMinute;
 
-    private static final String KEY_USERNAME = "username";
+    private static final String KEY_USERNAME_OR_EMAIL = "usernameOrEmail";
     private static final String KEY_TITLE = "title";
     private static final String KEY_DESCRIPTION = "description";
     private static final String KEY_YEAR = "year";
@@ -42,7 +44,7 @@ public class CreateTask extends AppCompatActivity implements View.OnClickListene
     private static final String KEY_DAY = "day";
     private static final String KEY_HOUR = "hour";
     private static final String KEY_MINUTE = "minute";
-    private static final String KEY_CREATE_TASK_URL = "http://172.20.174.224/TaskManager/createTask.php";
+    private static final String KEY_CREATE_TASK_URL = "http://172.20.179.65/TaskManager/createTask.php";
     private static final String KEY_STATUS = "status";
     private static final String KEY_MESSAGE = "message";
 
@@ -68,6 +70,7 @@ public class CreateTask extends AppCompatActivity implements View.OnClickListene
     protected void onPause() {
         super.onPause();
         overridePendingTransition(R.anim.fadein, R.anim.fadeout);
+
     }
 
     @Override
@@ -99,6 +102,7 @@ public class CreateTask extends AppCompatActivity implements View.OnClickListene
                                           int monthOfYear, int dayOfMonth) {
 
                         Toast.makeText(CreateTask.this, dayOfMonth + "-" + (monthOfYear + 1) + "-" + year, Toast.LENGTH_SHORT).show();
+                        mYear = year;mMonth = (monthOfYear + 1);mDay = dayOfMonth;
 
                     }
                 }, mYear, mMonth, mDay);
@@ -119,6 +123,7 @@ public class CreateTask extends AppCompatActivity implements View.OnClickListene
                                           int minute) {
 
                        Toast.makeText(CreateTask.this, hourOfDay + ":" + minute, Toast.LENGTH_SHORT).show();
+                        mMinute = minute;mHour = hourOfDay;
                     }
                 }, mHour, mMinute, false);
         timePickerDialog.show();
@@ -131,7 +136,7 @@ public class CreateTask extends AppCompatActivity implements View.OnClickListene
             JSONObject request = new JSONObject();
 
             try {
-                request.put(KEY_USERNAME , "modos");
+                request.put(KEY_USERNAME_OR_EMAIL , MainActivity.usernameOrEmail);
                 request.put(KEY_TITLE , title.getText().toString().trim());
                 request.put(KEY_DESCRIPTION , description.getText().toString().trim());
                 request.put(KEY_YEAR , mYear);
