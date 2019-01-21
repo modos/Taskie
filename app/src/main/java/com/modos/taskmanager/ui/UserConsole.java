@@ -1,6 +1,7 @@
 package com.modos.taskmanager.ui;
 
 import android.app.Dialog;
+import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.support.design.widget.FloatingActionButton;
@@ -10,6 +11,7 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.Menu;
@@ -35,16 +37,16 @@ import com.modos.taskmanager.model.Task;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class UserConsole extends AppCompatActivity {
+public class UserConsole extends AppCompatActivity implements TaskListAdapter.TasksAdapterListener{
 
     private FloatingActionButton floatingActionButton;
 
     private static RecyclerView recyclerView;
+    private SearchView searchView;
 
     static Context c;
 
@@ -61,10 +63,10 @@ public class UserConsole extends AppCompatActivity {
     private static final String KEY_USERNAME_OR_EMAIL = "usernameOrEmail";
     private static final String KEY_NEW_PASSWORD = "newPassword";
     private static final String KEY_TITLE = "title";
-    private static final String DELETE_ACCOUNT_URL = "http://172.20.179.65/TaskManager/deleteUser.php";
-    private static final String CHANGE_PASSWORD_URL = "http://172.20.179.65/TaskManager/changePassword.php";
-    private static final String TASKS_URL = "http://172.20.179.65/TaskManager/showTasks.php";
-    private static final String DELETE_TASK_URL = "http://172.20.179.65/TaskManager/deleteTaskFromList.php";
+    private static final String DELETE_ACCOUNT_URL = "http://192.168.1.5/TaskManager/deleteUser.php";
+    private static final String CHANGE_PASSWORD_URL = "http://192.168.1.5/TaskManager/changePassword.php";
+    private static final String TASKS_URL = "http://192.168.1.5/TaskManager/showTasks.php";
+    private static final String DELETE_TASK_URL = "http://192.168.1.5/TaskManager/deleteTaskFromList.php";
     private static final String KEY_STATUS = "status";
     private static final String KEY_MESSAGE= "message";
 
@@ -111,6 +113,9 @@ public class UserConsole extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onResume();
+        if (!searchView.isIconified()) {
+            searchView.setIconified(true);
+        }
     }
 
     @Override
@@ -132,7 +137,30 @@ public class UserConsole extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = getMenuInflater();
         menuInflater.inflate(R.menu.options, menu);
-        return super.onCreateOptionsMenu(menu);
+
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        searchView = (SearchView) menu.findItem(R.id.action_search)
+                .getActionView();
+        searchView.setSearchableInfo(searchManager
+                .getSearchableInfo(getComponentName()));
+        searchView.setMaxWidth(Integer.MAX_VALUE);
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                // filter recycler view when query submitted
+                adapter.getFilter().filter(query);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String query) {
+                // filter recycler view when text is changed
+                adapter.getFilter().filter(query);
+                return false;
+            }
+        });
+        return true;
     }
 
     @Override
@@ -160,8 +188,10 @@ public class UserConsole extends AppCompatActivity {
         itemTouchHelper.attachToRecyclerView(recyclerView);
 
         taskList = new ArrayList<>();
+        adapter = new TaskListAdapter(taskList, UserConsole.this);
 
         empty = findViewById(R.id.empty);
+
 
         floatingActionButton = findViewById(R.id.floating_action_button);
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
@@ -254,7 +284,6 @@ public class UserConsole extends AppCompatActivity {
                                 }
 
                             }
-                            adapter = new TaskListAdapter(taskList);
                             adapter.notifyDataSetChanged();
 
                             recyclerView.setAdapter(adapter);
@@ -325,5 +354,10 @@ public class UserConsole extends AppCompatActivity {
 
     }
 
+    @Override
+    public void onContactSelected(Task task)
+    {
+        Toast.makeText(this, task.getDescription(), Toast.LENGTH_SHORT).show();
+    }
 }
 

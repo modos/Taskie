@@ -23,4 +23,5 @@
     <string name="hour">Hour</string>
     <string name="day">Day</string>
     <string name="no_task">no task</string>
+    <string name="action_search">Search</string>
 </resources>

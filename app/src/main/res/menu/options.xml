@@ -1,9 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.modos.taskmanager.ui.UserConsole">
     <item android:id="@+id/log_out_item"
         android:title="@string/log_out"/>
     <item android:id="@+id/delete_item"
         android:title="@string/delete_account"/>
     <item android:id="@+id/change_password"
         android:title="@string/change_password"/>
+
+    <item
+        android:id="@+id/action_search"
+        android:orderInCategory="100"
+        android:title="@string/action_search"
+        app:showAsAction="always"
+        app:actionViewClass="android.support.v7.widget.SearchView" />
 </menu>

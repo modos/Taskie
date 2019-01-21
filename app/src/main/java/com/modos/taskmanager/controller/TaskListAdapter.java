@@ -1,37 +1,66 @@
 package com.modos.taskmanager.controller;
 
-import android.content.Context;
-import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.TextView;
-
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
 import com.modos.taskmanager.R;
 import com.modos.taskmanager.model.Task;
-import com.modos.taskmanager.ui.MainActivity;
-import com.modos.taskmanager.ui.UserConsole;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class TaskListAdapter extends RecyclerView.Adapter<TaskListAdapter.MyViewHolder>{
+public class TaskListAdapter extends RecyclerView.Adapter<TaskListAdapter.MyViewHolder>
+                implements Filterable{
 
-    private static List<Task> taskList;
+    private List<Task> taskList;
+    private List<Task> taskListFiltered;
+    private TasksAdapterListener listener;
 
-    public static class MyViewHolder extends RecyclerView.ViewHolder {
-        public TextView title, description, year, month, day, hour, minute;
+    public interface TasksAdapterListener {
+        void onContactSelected(Task task);
+    }
+
+    @Override
+    public Filter getFilter() {
+        return new Filter() {
+            @Override
+            protected FilterResults performFiltering(CharSequence charSequence) {
+                String charString = charSequence.toString();
+                if (charString.isEmpty()) {
+                    taskListFiltered = taskList;
+                } else {
+                    List<Task> filteredList = new ArrayList<>();
+                    for (Task row : taskList) {
+
+                        if (row.getTitle().toLowerCase().contains(charString.toLowerCase()) || row.getDescription().contains(charSequence)) {
+                            filteredList.add(row);
+                        }
+                    }
+
+                    taskListFiltered = filteredList;
+                }
+
+                FilterResults filterResults = new FilterResults();
+                filterResults.values = taskListFiltered;
+                return filterResults;
+            }
+
+            @Override
+            protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
+                taskListFiltered = (ArrayList<Task>  ) filterResults.values;
+                notifyDataSetChanged();
+            }
+        };
+    }
+
+    public  class MyViewHolder extends RecyclerView.ViewHolder {
+        private TextView title, description, year, month, day, hour, minute;
 
         public MyViewHolder(View view) {
             super(view);
@@ -42,11 +71,21 @@ public class TaskListAdapter extends RecyclerView.Adapter<TaskListAdapter.MyView
              day = view.findViewById(R.id.task_day_item);
              hour = view.findViewById(R.id.task_hour_item);
             minute = view.findViewById(R.id.task_minute_item);
+
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    listener.onContactSelected(taskListFiltered.get(getAdapterPosition()));
+                }
+            });
         }
     }
 
-    public TaskListAdapter(List<Task> taskList) {
+    public TaskListAdapter(List<Task> taskList, TasksAdapterListener listener)
+    {
         this.taskList = taskList;
+        this.taskListFiltered = taskList;
+        this.listener = listener;
     }
 
 
@@ -60,7 +99,7 @@ public class TaskListAdapter extends RecyclerView.Adapter<TaskListAdapter.MyView
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
 
-        Task task = taskList.get(position);
+        Task task = taskListFiltered.get(position);
 
         holder.title.setText(task.getTitle());
         holder.description.setText(task.getDescription());
@@ -73,7 +112,7 @@ public class TaskListAdapter extends RecyclerView.Adapter<TaskListAdapter.MyView
 
     @Override
     public int getItemCount() {
-        return taskList.size();
+        return taskListFiltered.size();
     }
 
     }
