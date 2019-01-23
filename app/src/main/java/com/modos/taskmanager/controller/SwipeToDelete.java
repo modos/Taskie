@@ -5,6 +5,8 @@ import android.graphics.drawable.ColorDrawable;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
+
+import com.modos.taskmanager.R;
 import com.modos.taskmanager.ui.UserConsole;
 
 public class SwipeToDelete extends ItemTouchHelper.SimpleCallback {
@@ -15,7 +17,7 @@ public class SwipeToDelete extends ItemTouchHelper.SimpleCallback {
     public SwipeToDelete(TaskListAdapter adapter) {
         super(0,ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT);
         this.adapter = adapter;
-        background = new ColorDrawable(Color.GREEN);
+        background = new ColorDrawable(Color.LTGRAY);
     }
 
     @Override

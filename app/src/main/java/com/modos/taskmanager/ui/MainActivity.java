@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
@@ -28,7 +29,8 @@ import java.util.concurrent.TimeUnit;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
     EditText inputUsernameOrEmail, inputPassword;
-    Button buttonLogin, buttonRegister;
+    Button buttonLogin;
+    TextView textRegister;
     Snackbar snackbar;
 
     @Override
@@ -50,22 +52,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        inputUsernameOrEmail = (EditText) findViewById(R.id.mainInputUsernameOrEmail);
-        inputPassword = (EditText) findViewById(R.id.registerInputPassword);
-        buttonLogin = (Button) findViewById(R.id.mainButtonLogin);
-        buttonRegister = (Button) findViewById(R.id.mainButtonRegister);
+        inputUsernameOrEmail = findViewById(R.id.mainInputUsernameOrEmail);
+        inputPassword = findViewById(R.id.registerInputPassword);
+        buttonLogin = findViewById(R.id.mainButtonLogin);
+        textRegister = findViewById(R.id.register_text);
 
         inputUsernameOrEmail.addTextChangedListener(new MyTextWatcher(inputUsernameOrEmail));
         inputPassword.addTextChangedListener(new MyTextWatcher(inputPassword));
 
-        buttonRegister.setOnClickListener(this);
+        textRegister.setOnClickListener(this);
         buttonLogin.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()){
-            case R.id.mainButtonRegister:
+            case R.id.register_text:
                 startActivity(new Intent(MainActivity.this, Register.class));
                 overridePendingTransition(R.anim.fadein, R.anim.fadeout);
                 break;
@@ -140,6 +142,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public void afterTextChanged(Editable s) {
 
             buttonLogin.setEnabled(false);
+            buttonLogin.setBackground(getDrawable(R.drawable.disabled_button));
 
                 switch (view.getId()){
                     case R.id.mainInputUsernameOrEmail:
@@ -154,6 +157,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 if (validateUsernameOrEmail() && validatePassword()){
                     buttonLogin.setEnabled(true);
+                    buttonLogin.setBackground(getDrawable(R.drawable.background_button));
                 }
         }
     }

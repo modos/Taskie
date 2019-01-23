@@ -15,5 +15,5 @@
         android:layout_marginBottom="16dp"
         android:layout_marginRight="16dp"
         android:id="@+id/floating_action_button"
-        android:src="@android:drawable/ic_dialog_email"/>
+        android:src="@drawable/baseline_add_black_18dp"/>
 </android.support.design.widget.CoordinatorLayout>

@@ -113,8 +113,10 @@ public class UserConsole extends AppCompatActivity implements TaskListAdapter.Ta
     @Override
     public void onBackPressed() {
         super.onResume();
-        if (!searchView.isIconified()) {
-            searchView.setIconified(true);
+        if (searchView != null){
+            if (!searchView.isIconified()) {
+                searchView.setIconified(true);
+            }
         }
     }
 
