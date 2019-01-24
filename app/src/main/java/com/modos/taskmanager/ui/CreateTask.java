@@ -136,7 +136,7 @@ public class CreateTask extends AppCompatActivity implements View.OnClickListene
             JSONObject request = new JSONObject();
 
             try {
-                request.put(KEY_USERNAME_OR_EMAIL , MainActivity.usernameOrEmail);
+                request.put(KEY_USERNAME_OR_EMAIL , UserConsole.getKeyUsernameOrEmail);
                 request.put(KEY_TITLE , title.getText().toString().trim());
                 request.put(KEY_DESCRIPTION , description.getText().toString().trim());
                 request.put(KEY_YEAR , mYear);
@@ -175,7 +175,7 @@ public class CreateTask extends AppCompatActivity implements View.OnClickListene
     }
 
     private void showSnackbar(String string){
-        snackbar.make(findViewById(android.R.id.content), string.toString(), Snackbar.LENGTH_SHORT)
+        snackbar.make(findViewById(android.R.id.content), string, Snackbar.LENGTH_SHORT)
                 .setActionTextColor(getResources().getColor(R.color.colorPrimary)).show();
     }
 }

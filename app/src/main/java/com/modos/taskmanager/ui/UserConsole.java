@@ -4,7 +4,9 @@ import android.app.Dialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -52,6 +54,12 @@ public class UserConsole extends AppCompatActivity implements TaskListAdapter.Ta
 
     static TextView empty;
 
+    Snackbar snackbar;
+
+    SharedPreferences log;
+    SharedPreferences.Editor editor;
+    public static String getKeyUsernameOrEmail;
+
     @Override
     public Context getApplicationContext() {
        return c =  super.getApplicationContext();
@@ -71,6 +79,8 @@ public class UserConsole extends AppCompatActivity implements TaskListAdapter.Ta
     private static final String KEY_MESSAGE= "message";
 
     private void logout(){
+        editor.putBoolean("isLogged", false);
+        editor.commit();
         finish();
     }
 
@@ -78,7 +88,7 @@ public class UserConsole extends AppCompatActivity implements TaskListAdapter.Ta
         final JSONObject request = new JSONObject();
 
         try {
-            request.put(KEY_USERNAME_OR_EMAIL , MainActivity.usernameOrEmail);
+            request.put(KEY_USERNAME_OR_EMAIL , getKeyUsernameOrEmail);
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -91,8 +101,11 @@ public class UserConsole extends AppCompatActivity implements TaskListAdapter.Ta
 
                 try {
                     if (response.getInt(KEY_STATUS) ==  0){
+                        editor.putBoolean("isLogged", false);
+                        editor.commit();
                        finish();
                     }else{
+                        showSnackbar(response.getString(KEY_MESSAGE));
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -178,6 +191,11 @@ public class UserConsole extends AppCompatActivity implements TaskListAdapter.Ta
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_console);
 
+        log = getSharedPreferences("Log", Context.MODE_PRIVATE);
+        editor = log.edit();
+        editor.apply();
+        getKeyUsernameOrEmail = log.getString("usernameOrEmail", null);
+
         recyclerView = findViewById(R.id.list);
         recyclerView.setHasFixedSize(true);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getApplicationContext());
@@ -220,6 +238,8 @@ public class UserConsole extends AppCompatActivity implements TaskListAdapter.Ta
 
         Button submit = dialog.findViewById(R.id.submit_new_password);
 
+        dialog.show();
+
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -227,7 +247,7 @@ public class UserConsole extends AppCompatActivity implements TaskListAdapter.Ta
                 final JSONObject request = new JSONObject();
 
                 try {
-                    request.put(KEY_USERNAME_OR_EMAIL , MainActivity.usernameOrEmail);
+                    request.put(KEY_USERNAME_OR_EMAIL , getKeyUsernameOrEmail);
                     request.put(KEY_NEW_PASSWORD , inputNewPassword.getText().toString().trim());
 
                 } catch (JSONException e) {
@@ -241,6 +261,11 @@ public class UserConsole extends AppCompatActivity implements TaskListAdapter.Ta
 
                         try {
                             if (response.getInt(KEY_STATUS) ==  0){
+                               dialog.cancel();
+
+                               editor.putBoolean("isLogged", false);
+                               editor.commit();
+
                                 startActivity(new Intent(UserConsole.this, MainActivity.class));
                                 overridePendingTransition(R.anim.fadein, R.anim.fadeout);
                             }
@@ -261,8 +286,6 @@ public class UserConsole extends AppCompatActivity implements TaskListAdapter.Ta
 
             }
         });
-
-        dialog.show();
     }
 
     private void showTasks(){
@@ -276,8 +299,8 @@ public class UserConsole extends AppCompatActivity implements TaskListAdapter.Ta
                             for (int i = 0; i < jarray.length(); i++) {
                                 JSONObject taskObject = jarray.getJSONObject(i);
 
-                                if (taskObject.getString("username").equals(MainActivity.usernameOrEmail)
-                                        || taskObject.getString("email").equals(MainActivity.usernameOrEmail)){
+                                if (taskObject.getString("username").equals(getKeyUsernameOrEmail)
+                                        || taskObject.getString("email").equals(getKeyUsernameOrEmail)){
                                     Task task = new Task(taskObject.getString("title"), taskObject.getString("description"),
                                                  taskObject.getInt("year"), taskObject.getInt("month"), taskObject.getInt("day"),
                                             taskObject.getInt("hour"), taskObject.getInt("minute"));
@@ -324,7 +347,7 @@ public class UserConsole extends AppCompatActivity implements TaskListAdapter.Ta
         final JSONObject request = new JSONObject();
 
         try {
-            request.put(KEY_USERNAME_OR_EMAIL, MainActivity.usernameOrEmail);
+            request.put(KEY_USERNAME_OR_EMAIL, getKeyUsernameOrEmail);
             request.put(KEY_TITLE, title);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -360,6 +383,11 @@ public class UserConsole extends AppCompatActivity implements TaskListAdapter.Ta
     public void onContactSelected(Task task)
     {
         Toast.makeText(this, task.getDescription(), Toast.LENGTH_SHORT).show();
+    }
+
+    private void showSnackbar(String string){
+        snackbar.make(findViewById(android.R.id.content), string.toString(), Snackbar.LENGTH_SHORT)
+                .setActionTextColor(getResources().getColor(R.color.colorPrimary)).show();
     }
 }
 
